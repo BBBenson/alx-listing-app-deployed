@@ -1,4 +1,3 @@
-// pages/property/[id].tsx
 "use client"
 
 import { useRouter } from "next/router"
@@ -20,15 +19,20 @@ const PropertyDetailPage = () => {
   const { id } = router.query
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!id) return
+
     const fetchProperty = async () => {
-      if (!id) return
       try {
-        const response = await axios.get(`/api/properties/${id}`)
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/properties/${id}`
+        )
         setProperty(response.data)
-      } catch (error) {
-        console.error("Error fetching property details:", error)
+      } catch (err) {
+        console.error("Error fetching property details:", err)
+        setError("Failed to load property details.")
       } finally {
         setLoading(false)
       }
@@ -41,22 +45,39 @@ const PropertyDetailPage = () => {
     return <p className="text-center py-10">Loading...</p>
   }
 
+  if (error) {
+    return <p className="text-center py-10 text-red-500">{error}</p>
+  }
+
   if (!property) {
     return <p className="text-center py-10">Property not found</p>
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
+    <div className="max-w-5xl mx-auto py-12 px-4">
+      {/* Property Image */}
       <img
         src={property.imageUrl}
         alt={property.title}
         className="w-full h-96 object-cover rounded-xl shadow-md"
       />
-      <h1 className="text-3xl font-bold mt-6">{property.title}</h1>
-      <p className="text-gray-600">{property.location}</p>
-      <p className="text-lg font-semibold mt-2">${property.price} / night</p>
-      <p className="text-yellow-500 mt-1">⭐ {property.rating}</p>
-      <p className="mt-4 text-gray-700">{property.description}</p>
+
+      {/* Property Info */}
+      <div className="mt-8 space-y-4">
+        <h1 className="text-3xl font-bold">{property.title}</h1>
+        <p className="text-gray-600">{property.location}</p>
+
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-semibold text-gray-900">
+            ${property.price} <span className="text-gray-600">/ night</span>
+          </p>
+          <p className="text-yellow-500 font-medium">⭐ {property.rating}</p>
+        </div>
+
+        <p className="mt-6 text-gray-700 leading-relaxed">
+          {property.description}
+        </p>
+      </div>
     </div>
   )
 }

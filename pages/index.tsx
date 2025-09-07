@@ -13,8 +13,10 @@ import { useEffect, useState } from "react"
 const HomePage: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const handlePropertyClick = (id: string) => {
+    // You can later replace this with router.push(`/property/${id}`)
     console.log(`Viewing property ${id}`)
   }
 
@@ -27,8 +29,9 @@ const HomePage: React.FC = () => {
       try {
         const response = await axios.get("/api/properties")
         setProperties(response.data)
-      } catch (error) {
-        console.error("Error fetching properties:", error)
+      } catch (err) {
+        console.error("Error fetching properties:", err)
+        setError("Failed to load properties. Please try again later.")
       } finally {
         setLoading(false)
       }
@@ -45,12 +48,12 @@ const HomePage: React.FC = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
         <Hero />
 
         {/* Featured Properties Section */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <section className="py-16 px-4 sm:px-6 lg:px-8 flex-1">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
@@ -61,19 +64,28 @@ const HomePage: React.FC = () => {
               </p>
             </div>
 
-            {loading ? (
-              <p className="text-center text-gray-600">Loading...</p>
-            ) : (
+            {loading && <p className="text-center text-gray-600">Loading...</p>}
+            {error && !loading && (
+              <p className="text-center text-red-500">{error}</p>
+            )}
+
+            {!loading && !error && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {properties.map((property) => (
-                  <div key={property.id} className="animate-fade-in">
-                    <Card
-                      {...property}
-                      onClick={() => handlePropertyClick(property.id)}
-                      onWishlistToggle={handleWishlistToggle}
-                    />
-                  </div>
-                ))}
+                {properties.length > 0 ? (
+                  properties.map((property) => (
+                    <div key={property.id} className="animate-fade-in">
+                      <Card
+                        {...property}
+                        onClick={() => handlePropertyClick(property.id)}
+                        onWishlistToggle={() => handleWishlistToggle(property.id)}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-600 col-span-full">
+                    No properties found.
+                  </p>
+                )}
               </div>
             )}
 
@@ -109,7 +121,6 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Footer */}
         <Footer />
       </div>
     </>

@@ -16,8 +16,6 @@ const ReviewSection = ({ propertyId }: { propertyId: string }) => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!propertyId) return
-
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
@@ -32,38 +30,35 @@ const ReviewSection = ({ propertyId }: { propertyId: string }) => {
       }
     }
 
-    fetchReviews()
+    if (propertyId) fetchReviews()
   }, [propertyId])
 
   if (loading) {
-    return <p className="text-gray-600">Loading reviews...</p>
+    return <p>Loading reviews...</p>
   }
 
   if (error) {
     return <p className="text-red-500">{error}</p>
   }
 
+  if (reviews.length === 0) {
+    return <p>No reviews yet.</p>
+  }
+
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-semibold mb-6">Guest Reviews</h2>
-
-      {reviews.length === 0 ? (
-        <p className="text-gray-500">No reviews yet. Be the first to leave one!</p>
-      ) : (
-        <div className="space-y-6">
-          {reviews.map((review) => (
-            <div
-              key={review.id}
-              className="border p-4 rounded-xl shadow-sm bg-white hover:shadow-md transition"
-            >
-              <p className="text-gray-700 italic">“{review.comment}”</p>
-              <p className="text-sm text-gray-500 mt-3">
-                — {review.author} <span className="text-yellow-500">⭐ {review.rating}</span>
-              </p>
+      <h2 className="text-2xl font-bold mb-4">Reviews</h2>
+      <div className="space-y-4">
+        {reviews.map((review) => (
+          <div key={review.id} className="p-4 border rounded-lg shadow-sm">
+            <p className="text-gray-800">"{review.comment}"</p>
+            <div className="flex justify-between mt-2">
+              <span className="text-sm text-gray-600">- {review.author}</span>
+              <span className="text-yellow-500">⭐ {review.rating}</span>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
